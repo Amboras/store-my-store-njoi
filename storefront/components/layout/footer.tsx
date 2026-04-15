@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { clearConsent } from '@/lib/cookie-consent'
 import { usePolicies } from '@/hooks/use-policies'
+import { Gauge, Mail, Phone, MapPin } from 'lucide-react'
 
 const footerLinks = {
   shop: [
@@ -20,12 +21,10 @@ const footerLinks = {
 export default function Footer() {
   const { policies } = usePolicies()
 
-  // Build company links dynamically based on available policies
   const companyLinks = [
     { label: 'About', href: '/about' },
   ]
 
-  // Add policy links only if they're set in the admin
   if (policies?.privacy_policy) {
     companyLinks.push({ label: 'Privacy Policy', href: '/privacy' })
   }
@@ -40,29 +39,45 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t bg-muted/30">
+    <footer className="border-t bg-foreground text-primary-foreground">
       <div className="container-custom py-section-sm">
-        {/* Main Footer */}
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-block">
-              <span className="font-heading text-2xl font-semibold">
-                Store
+            <Link href="/" className="inline-flex items-center gap-2 mb-4">
+              <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-sm">
+                <Gauge className="h-4 w-4 text-orange-400" strokeWidth={2} />
+              </div>
+              <span className="font-heading text-xl font-bold tracking-tight uppercase text-white">
+                Auto<span className="text-orange-400">Edge</span>
               </span>
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Curated products crafted with care. Quality you can feel, design you can see.
+            <p className="text-sm text-white/60 leading-relaxed max-w-xs">
+              Premium car accessories engineered for drivers who demand the best. Performance meets style.
             </p>
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <span>support@autoedge.com</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <Phone className="h-4 w-4 flex-shrink-0" />
+                <span>1-800-AUTO-EDG</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span>Detroit, Michigan, USA</span>
+              </div>
+            </div>
           </div>
 
           {/* Shop Links */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest mb-4">Shop</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-white">Shop</h3>
             <ul className="space-y-3">
               {footerLinks.shop.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -72,11 +87,11 @@ export default function Footer() {
 
           {/* Help Links */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest mb-4">Help</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-white">Support</h3>
             <ul className="space-y-3">
               {footerLinks.help.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -86,11 +101,11 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest mb-4">Company</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-white">Company</h3>
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -100,9 +115,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Store. All rights reserved.
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-white/40">
+            &copy; {new Date().getFullYear()} AutoEdge. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <button
@@ -110,11 +125,11 @@ export default function Footer() {
                 clearConsent()
                 window.dispatchEvent(new Event('manage-cookies'))
               }}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-white/40 hover:text-white/70 transition-colors"
             >
               Manage Cookies
             </button>
-            <span className="text-xs text-muted-foreground">Powered by Amboras</span>
+            <span className="text-xs text-white/30">Powered by Amboras</span>
           </div>
         </div>
       </div>
