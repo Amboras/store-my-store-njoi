@@ -157,11 +157,11 @@ export default function ProductBundleOffer({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold">Interior Essentials Bundle</p>
-            <p className="text-xs text-muted-foreground">Seat Covers + Phone Mount + Floor Mats</p>
+            <p className="text-xs text-muted-foreground">Seat Covers + 360° Magnetic Phone Mount</p>
           </div>
           <div className="text-right flex-shrink-0">
             <span className="text-sm font-bold text-orange-600">{formatPrice(bundlePrice, currency)}</span>
-            <p className="text-xs text-muted-foreground line-through">{formatPrice(singlePrice * 2 + 3499, currency)}</p>
+            <p className="text-xs text-muted-foreground line-through">{formatPrice(singlePrice + 3499, currency)}</p>
           </div>
         </button>
       </div>

@@ -15,7 +15,7 @@ import { getProductPlaceholder } from '@/lib/utils/placeholder-images'
 import { type VariantExtension } from '@/components/product/product-price'
 
 // Seat cover product ID — bundle offer shown on this product
-const SEAT_COVER_PRODUCT_ID = 'prod_01KP77Q8Y6XWVBFZ1NSE13X3PB'
+const SEAT_COVER_PRODUCT_ID = 'prod_01KP786SS3F58AETJBJZEQ90ZZ'
 // Bundle product default variant
 const BUNDLE_VARIANT_ID_PLACEHOLDER = 'bundle'
 
@@ -44,7 +44,7 @@ async function getBundleVariantId(): Promise<string | null> {
     if (!regionId) return null
 
     const response = await medusaServerClient.store.product.list({
-      id: 'prod_01KP77QNM0X8T7557TZ9P3D19F',
+      id: 'prod_01KP7876QSYVCYWD3XE8K36XNW',
       region_id: regionId,
       fields: '*variants.calculated_price',
     })
@@ -251,7 +251,7 @@ export default async function ProductPage({
                 singleVariantId={firstVariant?.id ?? ''}
                 bundleVariantId={bundleVariantId!}
                 singlePrice={singlePriceCents}
-                bundlePrice={14999}
+                bundlePrice={10999}
                 currency={currency}
               />
             )}
