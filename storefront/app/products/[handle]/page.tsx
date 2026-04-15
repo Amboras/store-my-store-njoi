@@ -5,12 +5,19 @@ export const revalidate = 3600 // ISR: revalidate every hour
 import { medusaServerClient } from '@/lib/medusa-client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Truck, RotateCcw, Shield, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import ProductActions from '@/components/product/product-actions'
 import ProductAccordion from '@/components/product/product-accordion'
+import ProductTrustBar from '@/components/product/product-trust-bar'
+import ProductBundleOffer from '@/components/product/product-bundle-offer'
 import { ProductViewTracker } from '@/components/product/product-view-tracker'
 import { getProductPlaceholder } from '@/lib/utils/placeholder-images'
 import { type VariantExtension } from '@/components/product/product-price'
+
+// Seat cover product ID — bundle offer shown on this product
+const SEAT_COVER_PRODUCT_ID = 'prod_01KP77Q8Y6XWVBFZ1NSE13X3PB'
+// Bundle product default variant
+const BUNDLE_VARIANT_ID_PLACEHOLDER = 'bundle'
 
 async function getProduct(handle: string) {
   try {
@@ -26,6 +33,24 @@ async function getProduct(handle: string) {
     return response.products?.[0] || null
   } catch (error) {
     console.error('Error fetching product:', error)
+    return null
+  }
+}
+
+async function getBundleVariantId(): Promise<string | null> {
+  try {
+    const regionsResponse = await medusaServerClient.store.region.list()
+    const regionId = regionsResponse.regions[0]?.id
+    if (!regionId) return null
+
+    const response = await medusaServerClient.store.product.list({
+      id: 'prod_01KP77QNM0X8T7557TZ9P3D19F',
+      region_id: regionId,
+      fields: '*variants.calculated_price',
+    })
+    const bundleProduct = response.products?.[0]
+    return bundleProduct?.variants?.[0]?.id || null
+  } catch {
     return null
   }
 }
@@ -89,7 +114,10 @@ export default async function ProductPage({
   params: Promise<{ handle: string }>
 }) {
   const { handle } = await params
-  const product = await getProduct(handle)
+  const [product, bundleVariantId] = await Promise.all([
+    getProduct(handle),
+    getBundleVariantId(),
+  ])
 
   if (!product) {
     notFound()
@@ -97,15 +125,29 @@ export default async function ProductPage({
 
   const variantExtensions = await getVariantExtensions(product.id)
 
+  const isSeatCover = product.id === SEAT_COVER_PRODUCT_ID
+  const showBundle = isSeatCover && !!bundleVariantId
+
   const allImages = [
     ...(product.thumbnail ? [{ url: product.thumbnail }] : []),
-    ...(product.images || []).filter((img: any) => img.url !== product.thumbnail),
+    ...(product.images || []).filter((img: { url: string }) => img.url !== product.thumbnail),
   ]
 
-  // Use placeholder if no images
   const displayImages = allImages.length > 0
     ? allImages
     : [{ url: getProductPlaceholder(product.id) }]
+
+  // Get single variant price for bundle offer
+  const firstVariant = product.variants?.[0] as {
+    id: string
+    calculated_price?: { calculated_amount?: number; currency_code?: string } | number
+  } | undefined
+  const cp = firstVariant?.calculated_price
+  const singlePriceCents = cp
+    ? (typeof cp === 'number' ? cp : cp.calculated_amount ?? 7999)
+    : 7999
+  const currency =
+    cp && typeof cp !== 'number' ? (cp.currency_code ?? 'usd') : 'usd'
 
   return (
     <>
@@ -135,11 +177,15 @@ export default async function ProductPage({
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
+              {/* Sale badge */}
+              <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-sm">
+                2025 Collection
+              </div>
             </div>
 
             {displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {displayImages.slice(1, 5).map((image: any, idx: number) => (
+                {displayImages.slice(1, 5).map((image: { url: string }, idx: number) => (
                   <div
                     key={idx}
                     className="relative aspect-[3/4] overflow-hidden bg-muted rounded-sm"
@@ -155,10 +201,26 @@ export default async function ProductPage({
                 ))}
               </div>
             )}
+
+            {/* Guarantee badge below images */}
+            <div className="flex items-center justify-center gap-3 py-3 bg-muted/40 rounded-sm border">
+              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                Secured by
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-bold">
+                <span className="text-green-700">SSL</span>
+                <span className="text-muted-foreground">·</span>
+                <span>Visa</span>
+                <span className="text-muted-foreground">·</span>
+                <span>Mastercard</span>
+                <span className="text-muted-foreground">·</span>
+                <span>PayPal</span>
+              </span>
+            </div>
           </div>
 
           {/* Product Info */}
-          <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
+          <div className="lg:sticky lg:top-24 lg:self-start space-y-5">
             {/* Title & Subtitle */}
             <div>
               {product.subtitle && (
@@ -173,28 +235,26 @@ export default async function ProductPage({
               productId={product.id}
               productTitle={product.title}
               variantId={product.variants?.[0]?.id || null}
-              currency={product.variants?.[0]?.calculated_price?.currency_code || 'usd'}
-              value={product.variants?.[0]?.calculated_price?.calculated_amount ?? null}
+              currency={currency}
+              value={singlePriceCents}
             />
 
-            {/* Variant Selector + Price + Add to Cart (client component) */}
+            {/* Trust Bar (star rating + live viewers) */}
+            <ProductTrustBar />
+
+            {/* Variant Selector + Price + Add to Cart */}
             <ProductActions product={product} variantExtensions={variantExtensions} />
 
-            {/* Trust Signals */}
-            <div className="grid grid-cols-3 gap-4 py-6 border-t">
-              <div className="text-center">
-                <Truck className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">Free Shipping</p>
-              </div>
-              <div className="text-center">
-                <RotateCcw className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">30-Day Returns</p>
-              </div>
-              <div className="text-center">
-                <Shield className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">Secure Checkout</p>
-              </div>
-            </div>
+            {/* Bundle Offer — shown only on seat cover product */}
+            {showBundle && (
+              <ProductBundleOffer
+                singleVariantId={firstVariant?.id ?? ''}
+                bundleVariantId={bundleVariantId!}
+                singlePrice={singlePriceCents}
+                bundlePrice={14999}
+                currency={currency}
+              />
+            )}
 
             {/* Accordion Sections */}
             <ProductAccordion
